@@ -20,6 +20,7 @@ module.exports = {
   },
   security: {
     cors: {
+      headers: 'Content-Type, Authorization'
       // allowOrigins: [
       //   'https://example.com',
       // ]

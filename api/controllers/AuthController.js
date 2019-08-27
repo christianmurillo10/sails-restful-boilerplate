@@ -65,7 +65,7 @@ module.exports = {
         message: "User successfully signed in.",
         result: {
           token: results.updateLogStatus.token,
-          data: Object.assign(_.omit(results.updateLogStatus.user, ['password', 'username', 'id']), {id: await encryptionHelper('encrypt', results.updateLogStatus.user.id)})
+          data: Object.assign(_.omit(results.updateLogStatus.user, ['password', 'id']), {id: await encryptionHelper('encrypt', results.updateLogStatus.user.id)})
         }
       });
     });
