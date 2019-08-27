@@ -20,21 +20,22 @@ module.exports = {
 
     // Validators
     if (_.isUndefined(params.username))  return res.badRequest("Invalid Credentials.");
-    if (_.isUndefined(params.password))  return res.badRequest("Invalid Credentials.");
-    // if (!req.isSocket) return res.json({status: 400, message: 'Request could not process.'});
 
     tasks = {
       // Check user if existing
       checkUser: async (cb) => {
+        if (_.isEmpty(params.username))  return cb(null, {error: true, message: "Username is required."});
+        if (_.isEmpty(params.password))  return cb(null, {error: true, message: "Password is required."});
+
         let userInfo = await Users.findOne({ username: params.username }).intercept((err) => { return cb(err); });
         // Account checker
         if (userInfo) {
           bcrypt.compare(params.password, userInfo.password, async (err, match) => {
-            if (err || !match) return cb({error: "Invalid Credentials."});
-            return cb(null, userInfo);
+            if (err || !match) return cb(null, {error: true, message: "Invalid Credentials."});
+            return cb(null, {error: false, data: userInfo});
           });
         } else {
-          return cb(400, {error: "User not existing"});
+          return cb(null, {error: true, message: "User not exist."});
         }
       },
       // Update database status
@@ -51,10 +52,18 @@ module.exports = {
       if (err) { console.error(err); return res.badRequest(err); }
       sails.log("AuthController@login - [ID]:%s [User]:%s [IP]%s", results.updateLogStatus.user.id, results.updateLogStatus.user.username, ip);
 
+      if (results.checkUser.error) {
+        return res.ok({
+          status: 200,
+          message: results.checkUser.message,
+          result: false
+        });
+      }
+
       return res.ok({
         status: 200,
         message: "User successfully signed in.",
-        credentials: {
+        result: {
           token: results.updateLogStatus.token,
           data: Object.assign(_.omit(results.updateLogStatus.user, ['password', 'username', 'id']), {id: await encryptionHelper('encrypt', results.updateLogStatus.user.id)})
         }
@@ -93,8 +102,7 @@ module.exports = {
     };
 
     async.auto(tasks, (err, results) => {
-      if (err)
-        return res.badRequest(err);
+      if (err) return res.badRequest(err);
 
       return res.ok("Successfully logged out.");
     });
