@@ -104,7 +104,11 @@ module.exports = {
     async.auto(tasks, (err, results) => {
       if (err) return res.badRequest(err);
 
-      return res.ok("Successfully logged out.");
+      return res.ok({
+        status: 200,
+        message: "Successfully logged out.",
+        result: true
+      });
     });
   },
 
